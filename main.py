@@ -91,9 +91,11 @@ def main(args):
             cam = cam / np.max(cam)
             savepath1 = "out/out1/" + img_path[7:]
             savepath2 = "out/out2/" + img_path[7:]
+            print(savepath1, savepath2)
             cv2.imwrite(savepath1, np.uint8(255 * cam))
             cv2.imwrite(savepath2, heatmap*255)
             print("finish")
+            
 if __name__ == '__main__':
     main(args)
     pass
