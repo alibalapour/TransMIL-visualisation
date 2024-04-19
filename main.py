@@ -89,9 +89,8 @@ def main(args):
             heatmap = np.float32(heatmap) / 255
             cam = heatmap + np.float32(img)
             cam = cam / np.max(cam)
-            savepath1 = "out/out1/" + img_path[7:]
-            savepath2 = "out/out2/" + img_path[7:]
-            print(savepath1, savepath2)
+            savepath1 = ''.join('out_1-' + img_path.split('/')[-1])
+            savepath2 = ''.join('out_2-' + img_path.split('/')[-1])
             cv2.imwrite(savepath1, np.uint8(255 * cam))
             cv2.imwrite(savepath2, heatmap*255)
             print("finish")
