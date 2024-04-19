@@ -27,11 +27,11 @@ parser.add_argument('--patch_size', type=int, default=448)
 parser.add_argument('--number_of_classes', type=int, default=6)
 args = parser.parse_args()
 
-def load_model(model_name, mode_path):
+def load_model(model_name, mode_path,number_of_classes):
     if model_name == 'TransMIL':
         param = torch.load(mode_path, map_location=args.device)['state_dict']
         new_param = {k[6:]: v for k, v in param.items()}
-        model = TransMIL(n_classes=6, head_fusion='mean')
+        model = TransMIL(n_classes=number_of_classes, head_fusion='mean')
         model.load_state_dict(new_param)
     return model
 
@@ -44,7 +44,7 @@ def get_attn(attns):
         result = torch.matmul(attn, result)
     return result
 def main(args):
-    model = load_model(args.model_name, args.model_path)
+    model = load_model(args.model_name, args.model_path, args.number_of_classes)
     attn_dataset = Attn_Dateset(args.h5_path, args.thumbnail_path)
     attn_dataloader = DataLoader(attn_dataset, batch_size=1, shuffle=False)
     model.to(device=args.device)
