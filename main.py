@@ -24,13 +24,14 @@ parser.add_argument('--device', type=str, default='cuda:0')
 parser.add_argument('--downsample', type=int, default=64)
 #patch-size
 parser.add_argument('--patch_size', type=int, default=448)
+parser.add_argument('--number_of_classes', type=int, default=6)
 args = parser.parse_args()
 
 def load_model(model_name, mode_path):
     if model_name == 'TransMIL':
         param = torch.load(mode_path, map_location=args.device)['state_dict']
         new_param = {k[6:]: v for k, v in param.items()}
-        model = TransMIL(n_classes=2, head_fusion='mean')
+        model = TransMIL(n_classes=6, head_fusion='mean')
         model.load_state_dict(new_param)
     return model
 
