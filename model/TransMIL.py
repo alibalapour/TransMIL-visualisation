@@ -7,7 +7,7 @@ from nystrom_attention import NystromAttention
 
 class TransLayer(nn.Module):
 
-    def __init__(self, norm_layer=nn.LayerNorm, dim=512, head_fusion='mean'):
+    def __init__(self, norm_layer=nn.LayerNorm, dim=512):
         super().__init__()
         self.norm = norm_layer(dim)
         self.attn = NystromAttention(
@@ -17,15 +17,13 @@ class TransLayer(nn.Module):
             num_landmarks = dim//2,    # number of landmarks
             pinv_iterations = 6,    # number of moore-penrose iterations for approximating pinverse. 6 was recommended by the paper
             residual = True,         # whether to do an extra residual with the value or not. supposedly faster convergence if turned on
-            dropout=0.1,
-            return_attn= True,
-            head_fusion='max',
+            dropout=0.1
         )
 
     def forward(self, x):
-        _, attn = self.attn(self.norm(x))
-        x = x + _
-        return x, attn
+        x = x + self.attn(self.norm(x))
+
+        return x
 
 
 class PPEG(nn.Module):
@@ -46,21 +44,24 @@ class PPEG(nn.Module):
 
 
 class TransMIL(nn.Module):
-    def __init__(self, n_classes, head_fusion='mean'):
+    def __init__(self, n_classes, PLIP_encoder=False):
         super(TransMIL, self).__init__()
         self.pos_layer = PPEG(dim=512)
-        self._fc1 = nn.Sequential(nn.Linear(768, 512), nn.ReLU())
+        if PLIP_encoder:
+            self._fc1 = nn.Sequential(nn.Linear(512, 512), nn.ReLU())
+        else:
+            self._fc1 = nn.Sequential(nn.Linear(1024, 512), nn.ReLU())
         self.cls_token = nn.Parameter(torch.randn(1, 1, 512))
         self.n_classes = n_classes
-        self.layer1 = TransLayer(dim=512, head_fusion=head_fusion)
-        self.layer2 = TransLayer(dim=512, head_fusion=head_fusion)
+        self.layer1 = TransLayer(dim=512)
+        self.layer2 = TransLayer(dim=512)
         self.norm = nn.LayerNorm(512)
         self._fc2 = nn.Linear(512, self.n_classes)
-    
 
-    def forward(self, feature):
 
-        h = feature #[B, n, 1024]
+    def forward(self, **kwargs):
+
+        h = kwargs['data'].float() #[B, n, 1024]
         
         h = self._fc1(h) #[B, n, 512]
         
@@ -76,13 +77,13 @@ class TransMIL(nn.Module):
         h = torch.cat((cls_tokens, h), dim=1)
 
         #---->Translayer x1
-        h, attn0 = self.layer1(h) #[B, N, 512]
+        h = self.layer1(h) #[B, N, 512]
 
         #---->PPEG
         h = self.pos_layer(h, _H, _W) #[B, N, 512]
         
         #---->Translayer x2
-        h, attn1 = self.layer2(h) #[B, N, 512]
+        h = self.layer2(h) #[B, N, 512]
 
         #---->cls_token
         h = self.norm(h)[:,0]
@@ -92,7 +93,7 @@ class TransMIL(nn.Module):
         Y_hat = torch.argmax(logits, dim=1)
         Y_prob = F.softmax(logits, dim = 1)
         results_dict = {'logits': logits, 'Y_prob': Y_prob, 'Y_hat': Y_hat}
-        return results_dict, [attn0, attn1]
+        return results_dict
 
 if __name__ == "__main__":
     data = torch.randn((1, 6000, 1024)).cuda()
