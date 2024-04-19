@@ -9,9 +9,11 @@ import numpy as np
 
 parser = argparse.ArgumentParser(description='Create heatmaps')
 #use clam create_feature_fp.py you can get .h5 file
-parser.add_argument('--h5_path', type=str, default='h5-files/')
+parser.add_argument('--h5_path', type=str, default='h5/')
 #thumbnail img dir
-parser.add_argument('--thumbnail_path', type=str, default='images/')
+parser.add_argument('--thumbnail_path', type=str, default='thumbnails/')
+#features img dir
+parser.add_argument('--feature_path', type=str, default='features/')
 #mean min max
 parser.add_argument('--head_fusion', type=str, default= 'mean')
 parser.add_argument('--model_path', type=str, default='model/test.ckpt')
