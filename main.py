@@ -45,7 +45,7 @@ def get_attn(attns):
     return result
 def main(args):
     model = load_model(args.model_name, args.model_path, args.number_of_classes)
-    attn_dataset = Attn_Dateset(args.h5_path, args.thumbnail_path)
+    attn_dataset = Attn_Dateset(args.h5_path, args.thumbnail_path, args.feature_path)
     attn_dataloader = DataLoader(attn_dataset, batch_size=1, shuffle=False)
     model.to(device=args.device)
     model.eval()
