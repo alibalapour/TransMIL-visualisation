@@ -28,7 +28,7 @@ args = parser.parse_args()
 
 def load_model(model_name, mode_path):
     if model_name == 'TransMIL':
-        param = torch.load(mode_path)['state_dict']
+        param = torch.load(mode_path, map_location=args.device)['state_dict']
         new_param = {k[6:]: v for k, v in param.items()}
         model = TransMIL(n_classes=2, head_fusion='mean')
         model.load_state_dict(new_param)
